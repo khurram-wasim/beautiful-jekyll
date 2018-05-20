@@ -1,7 +1,7 @@
 ---
 layout: post
-title: Server side rendering in Angular Cli Applications
-subtitle: Server side rendering using Angular Universal
+title: Server side rendering in Angular
+subtitle: Server side rendering in Angular cli applications using Angular Universal
 tags: [angular universal, angular cli]
 ---
 
@@ -177,14 +177,37 @@ import { readFileSync } from 'fs';
 // Faster server renders w/ Prod mode (dev mode never needed)
 enableProdMode();
 
+
 // Express server
 const app = express();
+
+var compress = require('compression');
+app.use(compress());
 
 const PORT = process.env.PORT || 4000;
 const DIST_FOLDER = join(process.cwd(), 'dist');
 
 // Our index.html we'll use as our template
 const template = readFileSync(join(DIST_FOLDER, 'browser', 'index.html')).toString();
+
+
+// Hack for server side rendering starts here
+const domino = require('domino');
+const fs = require('fs');
+const path = require('path');
+const Zone = require('zone.js');
+import fetch from 'node-fetch';
+
+const win = domino.createWindow(template);
+const files = fs.readdirSync(`${process.cwd()}/dist/server`);
+
+win.fetch = fetch;
+global['window'] = win;
+global['document'] = win.document;
+global['navigator'] = win.navigator;
+
+// Hack for server side rendering ends here
+
 
 // * NOTE :: leave this as require() since this file is built Dynamically from webpack
 const { AppServerModuleNgFactory, LAZY_MODULE_MAP } = require('./dist/server/main.bundle');
@@ -221,12 +244,18 @@ app.listen(PORT, () => {
   console.log(`Node server listening on http://localhost:${PORT}`);
 });
 
+
 ```
 
+## Universal gotchas
+
+In the above script there is section of a hack for server side rendering
+Angular Universal does not support DOM elements like document, event, navigator etc.
+This is because when you develop an application, for best practices you should
+follow the guidelines and facilities provided by the framework you are using.
 
 
-# 3. Setup a webpack config to handle this Node server.ts file and serve your
-# application!
+# 3. Setup a webpack config to handle this Node server.ts file and serve your application!
 
 The file we are going to create takes server.ts, compiles it and every dependency
 it has into dist/server.js.
@@ -283,8 +312,9 @@ module.exports = {
   external modules **which you do require in your project**.
   (By default it does not bundle any module from node_modules folder)
 
-  **TIP !** You should add modules to whitelist after you build the project and
-  encounter errors about the modules while building.
+  **TIP !** You should add modules to whitelist after you build and run the project and
+  encounter errors about those modules.
+  In my case those were zone.js and reflect-metadata
 
 
 
@@ -292,11 +322,17 @@ module.exports = {
 # 4. Finalizing things
 
 Add these 4 following scripts in package.json
+```javascript
 
 "build:ssr": "npm run build:client-and-server-bundles && npm run webpack:server",
+
 "serve:ssr": "node dist/server.js",
+
 "build:client-and-server-bundles": "ng build --prod && ng build --prod --app 1 --output-hashing=false",
+
 "webpack:server": "webpack --config webpack.server.config.js --progress --colors"
+
+```
 
 ## To build and run the project
 
