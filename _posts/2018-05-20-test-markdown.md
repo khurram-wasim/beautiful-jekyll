@@ -7,7 +7,7 @@ tags: [angular universal, angular cli]
 
 
 
-# Setup to create a build
+# 1. Setup to create a build
 
 ## Install Dependencies
 
@@ -15,7 +15,7 @@ First you need to install three bundles by doing:
 
 ```javascript
 
-npm install --save @angular/platform-server @nguniversal ts-loader
+npm install --save @angular/platform-server @nguniversal ts-loader webpack-node-externals
 
 ```
 
@@ -23,7 +23,8 @@ Make sure you use the same version as the other @angular packages in your projec
 
 ## Preparing app for Server side rendering
 
-### Step 1: Edit app.module.ts
+
+### Step a: Edit app.module.ts
 
 You would have edit you app.module.ts, by adding a .withServerTransition() property
 along with your application id:
@@ -46,7 +47,9 @@ along with your application id:
 export class AppModule {}
 
 ```
-### Step 2: Create app.server.module.ts
+
+
+### Step b: Create app.server.module.ts
 
 Duplicate the file app.module.ts as app.server.module.ts and place the following
 content in the file
@@ -78,7 +81,8 @@ export class AppServerModule {}
 
 ```
 
-### Step 3 Create main.server.ts and tsconfig.server.json
+
+### Step c: Create main.server.ts and tsconfig.server.json
 
 Create main.server.ts in src directory, its content would be:
 
@@ -121,7 +125,8 @@ AppServerModule. Now the file would look like:
 
 ```
 
-### Step 4 Edit angular-cli.json
+
+### Step d: Edit angular-cli.json
 
 You would have one object in **apps** array in angular-cli.json.
 Change **outDir** of this object to *dist/browser*.
@@ -130,7 +135,174 @@ Now, duplicate this object inside this array. Inside the second object:
 
 1. Add a property **"platform": "server"**.
 2. Change **outDir** to be *"dist/server"*.
-3. Change **main** to be *main.server.ts*.
-4. Change **tsconfig** to be *tsconfig.server.json*.
+3. Change **main** to be *"main.server.ts"*.
+4. Change **tsconfig** to be *"tsconfig.server.json"*.
+
+
+
+### Step e: Configure usage of absoulte paths in your applications
+
+If you have used absolute paths in your app you might encounter errors while
+building your bundle. To fix those errors do the following:
+
+#### ./tsconfig.json
+
+Set the property  **baseUrl** to **src**
 
 **Congratulations !!** Your bundle is ready to be built.
+
+
+
+# 2. Setting up an Express Server to run our Universal bundles
+
+Now you have your bundle built, but how would we run it ? You can create an
+express server to do this. Simply create a server.ts in the root of your project
+and paste the following content:
+
+#### ./server.ts (at the root of project)
+
+```javascript
+
+// These are important and needed before anything else
+import 'zone.js/dist/zone-node';
+import 'reflect-metadata';
+
+import { renderModuleFactory } from '@angular/platform-server';
+import { enableProdMode } from '@angular/core';
+
+import * as express from 'express';
+import { join } from 'path';
+import { readFileSync } from 'fs';
+
+// Faster server renders w/ Prod mode (dev mode never needed)
+enableProdMode();
+
+// Express server
+const app = express();
+
+const PORT = process.env.PORT || 4000;
+const DIST_FOLDER = join(process.cwd(), 'dist');
+
+// Our index.html we'll use as our template
+const template = readFileSync(join(DIST_FOLDER, 'browser', 'index.html')).toString();
+
+// * NOTE :: leave this as require() since this file is built Dynamically from webpack
+const { AppServerModuleNgFactory, LAZY_MODULE_MAP } = require('./dist/server/main.bundle');
+
+const { provideModuleMap } = require('@nguniversal/module-map-ngfactory-loader');
+
+app.engine('html', (_, options, callback) => {
+  renderModuleFactory(AppServerModuleNgFactory, {
+    // Our index.html
+    document: template,
+    url: options.req.url,
+    // DI so that we can get lazy-loading to work differently (since we need it to just instantly render it)
+    extraProviders: [
+      provideModuleMap(LAZY_MODULE_MAP)
+    ]
+  }).then(html => {
+    callback(null, html);
+  });
+});
+
+app.set('view engine', 'html');
+app.set('views', join(DIST_FOLDER, 'browser'));
+
+// Server static files from /browser
+app.get('*.*', express.static(join(DIST_FOLDER, 'browser')));
+
+// All regular routes use the Universal engine
+app.get('*', (req, res) => {
+  res.render(join(DIST_FOLDER, 'browser', 'index.html'), { req });
+});
+
+// Start up the Node server
+app.listen(PORT, () => {
+  console.log(`Node server listening on http://localhost:${PORT}`);
+});
+
+```
+
+
+
+# 3. Setup a webpack config to handle this Node server.ts file and serve your
+# application!
+
+The file we are going to create takes server.ts, compiles it and every dependency
+it has into dist/server.js.
+So, create webpack.server.config.js at the root.
+
+#### ./webpack.server.config.js (at the root of project)
+
+```javascript
+
+const path = require('path');
+const webpack = require('webpack');
+var nodeExternals = require('webpack-node-externals');
+
+module.exports = {
+  entry: {  server: './server.ts' },
+  resolve: { extensions: ['.js', '.ts'] },
+  target: 'node',
+
+  externals: [
+    nodeExternals({
+      whitelist: [/zone.js/, /reflect-metadata/]
+    })
+  ],
+  output: {
+    path: path.join(__dirname, 'dist'),
+    filename: '[name].js'
+  },
+  module: {
+    rules: [
+      { test: /\.ts$/, loader: 'ts-loader' }
+    ]
+  },
+  plugins: [
+    // Temporary Fix for issue: https://github.com/angular/angular/issues/11580
+    // for "WARNING Critical dependency: the request of a dependency is an expression"
+    new webpack.ContextReplacementPlugin(
+      /(.+)?angular(\\|\/)core(.+)?/,
+      path.join(__dirname, 'src'), // location of your src
+      {} // a map of your routes
+    ),
+    new webpack.ContextReplacementPlugin(
+      /(.+)?express(\\|\/)(.+)?/,
+      path.join(__dirname, 'src'),
+      {}
+    )
+  ]
+}
+
+```
+
+### nodeExternals
+  In the above script,
+  Inside **nodeExternals** you can pass a object of **whiteList**, containing an array of
+  external modules **which you do require in your project**.
+  (By default it does not bundle any module from node_modules folder)
+
+  **TIP !** You should add modules to whitelist after you build the project and
+  encounter errors about the modules while building.
+
+
+
+
+# 4. Finalizing things
+
+Add these 4 following scripts in package.json
+
+"build:ssr": "npm run build:client-and-server-bundles && npm run webpack:server",
+"serve:ssr": "node dist/server.js",
+"build:client-and-server-bundles": "ng build --prod && ng build --prod --app 1 --output-hashing=false",
+"webpack:server": "webpack --config webpack.server.config.js --progress --colors"
+
+## To build and run the project
+
+```javascript
+
+npm run build:ssr && npm run serve:ssr
+
+```
+**GOOD LUCK !!**
