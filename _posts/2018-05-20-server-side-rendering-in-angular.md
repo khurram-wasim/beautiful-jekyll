@@ -5,17 +5,20 @@ subtitle: Server side rendering in Angular cli applications using Angular Univer
 tags: [angular universal, angular cli]
 ---
 
-
+This is a comprehensive guide to do server side rendering in angular cli applications,
+as it also discusses the problems and their solutions which you can encounter along the
+way.
 
 # 1. Setup to create a build
 
 ## Install Dependencies
 
-First you need to install three bundles by doing:
+First you need to install following bundles by doing:
 
 ```javascript
 
 npm install --save @angular/platform-server @nguniversal ts-loader webpack-node-externals
+npm install --save domino fs path zone.js node-fetch reflect-metadata
 
 ```
 
@@ -250,9 +253,15 @@ app.listen(PORT, () => {
 ## Universal gotchas
 
 In the above script there is section of a hack for server side rendering
-Angular Universal does not support DOM elements like document, event, navigator etc.
-This is because when you develop an application, for best practices you should
-follow the guidelines and facilities provided by the framework you are using.
+Angular Universal does not support DOM elements like **document, event, navigator etc.**
+This is because when you develop an application, for best practices **you should
+follow the guidelines and facilities provided by the framework you are using**.
+
+In my case some of the external modules were using those DOM elements (window,
+document and navigator.) To fix this issue I included the module **domino** which provides
+DOM at the backend.
+
+A sample usage can also be found [here](https://github.com/angular/universal/issues/830).
 
 
 # 3. Setup a webpack config to handle this Node server.ts file and serve your application!
