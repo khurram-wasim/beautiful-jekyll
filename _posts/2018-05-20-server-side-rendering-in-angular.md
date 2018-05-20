@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Server side rendering in Angular
+title: Server side rendering in Angular 5
 subtitle: Server side rendering in Angular cli applications using Angular Universal
 tags: [angular universal, angular cli]
 ---
