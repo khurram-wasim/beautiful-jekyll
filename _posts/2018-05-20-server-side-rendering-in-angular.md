@@ -261,7 +261,7 @@ In my case some of the external modules were using those DOM elements (window,
 document and navigator.) To fix this issue I included the module **domino** which provides
 DOM at the backend.
 
-A sample usage can also be found [here](https://github.com/angular/universal/issues/830).
+Another sample usage can also be found [here](https://github.com/angular/universal/issues/830).
 
 
 # 3. Setup a webpack config to handle this Node server.ts file and serve your application!
