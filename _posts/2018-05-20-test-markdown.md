@@ -23,7 +23,7 @@ Make sure you use the same version as the other @angular packages in your projec
 
 ## Preparing app for Server side rendering
 
-### Step 1
+### Step 1: Edit app.module.ts
 
 You would have edit you app.module.ts, by adding a .withServerTransition() property
 along with your application id:
@@ -46,7 +46,7 @@ along with your application id:
 export class AppModule {}
 
 ```
-### Step 2
+### Step 2: Create app.server.module.ts
 
 Duplicate the file app.module.ts as app.server.module.ts and place the following
 content in the file
@@ -78,7 +78,7 @@ export class AppServerModule {}
 
 ```
 
-### Step 3
+### Step 3 Create main.server.ts and tsconfig.server.json
 
 Create main.server.ts in src directory, its content would be:
 
@@ -100,11 +100,11 @@ AppServerModule. Now the file would look like:
 ```javascript
 
 {
-  {   ""extendsextends""::  ""../tsconfig.json../tsconfig.json"",
-  ,   ""compilerOptionscompilerOptions"":: {
-     {     ""outDiroutDir""::  ""../out-tsc/app../out-tsc/app"",
-    ,     ""baseUrlbaseUrl""::  ""././"",
-    ,     //// Set the module format to "commonjs": Set the module format to
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../out-tsc/app",
+    "baseUrl": "./",
+    // Set the module format to "commonjs":
     "module": "commonjs",
     "types": []
   },
@@ -120,3 +120,17 @@ AppServerModule. Now the file would look like:
 }
 
 ```
+
+### Step 4 Edit angular-cli.json
+
+You would have one object in **apps** array in angular-cli.json.
+Change **outDir** of this object to *dist/browser*.
+
+Now, duplicate this object inside this array. Inside the second object:
+
+1. Add a property **"platform": "server"**.
+2. Change **outDir** to be *"dist/server"*.
+3. Change **main** to be *main.server.ts*.
+4. Change **tsconfig** to be *tsconfig.server.json*.
+
+**Congratulations !!** Your bundle is ready to be built.
