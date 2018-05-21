@@ -1,16 +1,9 @@
 ---
 layout: page
 title: About me
-subtitle: Why you'd want to go on a date with me
+subtitle: Full Stack Developer
 ---
 
-My name is Inigo Montoya. I have the following qualities:
+If you are looking to fulfill your web development needs be it front end or back I am your man.I have had extensive experience in development of over 5 years with javascript frameworks; Angular JS , React JS and Node JS. If your need is to have awesome website design with and a seamless user experience you have came to the right place.
 
-- I rock a great mustache
-- I'm extremely loyal to my family
-
-What else do you need?
-
-### my history
-
-To be honest, I'm having some trouble remembering right now, so why don't you just watch [my movie](http://en.wikipedia.org/wiki/The_Princess_Bride_%28film%29) and it will answer **all** your questions.
+I am fluent in Bootstrap which makes it developing responsive web design a walk in the park. Apart from that Wordpress is a part and parcel of my life with wordpress theme development and plugin development of particular interests. Over time I have diversified my skills into chrome apps and chrome extensions. When it comes to settings sprints and tickets Jira or Asana would be the tool to use and to wrap it all Slack would be a go to for communication between us.
