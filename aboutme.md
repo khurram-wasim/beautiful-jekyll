@@ -4,8 +4,16 @@ title: About me
 subtitle: Full Stack Developer
 ---
 
-If you are looking to fulfil your web/mobile development needs be it front end or back I am your man.I have had extensive experience in development of 8 years with javascript frameworks; React JS, React Native, Angular JS, and Node JS.
+Looking to develop a web or mobile app for your business?
 
-I am passionate about writing clean/maintainable code using design patterns. I am conscious about security related loop holes, I opt best practices to design secure/reliable apps.
+Actively hiring for frontend or backend development?
 
-If your need is to have an awesome website, mobile app with and a seamless user experience, please reach out.
+You've landed at the right place! I'm a Full stack Javascript developer with 8+ years of experience with javascript frameworks: React JS, React Native, Angular JS and Node JS.
+
+I can help you create seamless applications with clean & scalable code using design pattens, keeping best coding standards in sight. I make it a priority to cater to all security-related loop hopes, and deliver a secure & reliable product.
+
+My passion is to enable businesses like you to sell better through amazing applications and websites.
+
+Interested in driving your revenue & profits? Drop me a line!
+
+I'd love to chat and discuss your project ideas!
